@@ -1,7 +1,7 @@
 {
   "name": "onslaught_maths_automation",
   "version": "0.1.0",
-  "homepage": "https://Onslaught_Maths_Simulator.github.io/OnslaughtMathSimulator",
+  "homepage": "https://markaaron-hewitt.github.io/Onslaught_Maths_Simulator",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
