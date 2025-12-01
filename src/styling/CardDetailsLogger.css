@@ -1,0 +1,42 @@
+.DetailsLogger{
+    margin-top: 40px;
+    padding-top: 2px;
+    padding-bottom: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+    background-color: navy;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h5{
+    margin: 0;
+    padding-bottom: 5px;
+}
+
+input{
+    margin-top:0;
+    width: 56px;
+    text-align:center;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.Inputs{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    padding: 5px
+}
+
+.Inputs>select{
+    width: 60px;
+}
+
+button{
+  height: 40px;
+  width: 200px;
+}

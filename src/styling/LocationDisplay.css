@@ -1,0 +1,27 @@
+.LocationDisplay{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.Location-image {
+  height: 12vmin;
+  width: 12vmin;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.LocationDisplay>select{
+  margin-top: 4px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+option{
+  text-align: center;
+}

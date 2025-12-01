@@ -1,0 +1,19 @@
+.GameBoard{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 10px;
+    margin-right: 140px;
+    padding: 20px;
+    background-color: navy;
+    border: 1px solid black;
+    gap: 60px;
+}
+
+.locationColumn{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
