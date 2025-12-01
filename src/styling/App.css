@@ -1,0 +1,38 @@
+#App{
+  min-height: 100vh;
+  background-color: #282c34;
+}
+
+#content{
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  display: flex;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+}
+
+button{
+  height: 40px;
+  width: 200px;
+}
+
+.verticalContent{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.horizontalContent{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}

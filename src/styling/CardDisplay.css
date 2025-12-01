@@ -1,0 +1,52 @@
+.CardDisplay{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.Card-image {
+  height: 12vmin;
+  width: 12vmin;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.PlusIcon{
+  height: 2vmin;
+  width: 2vmin;
+  position: absolute;
+  right: 2vmin;
+  top: 7vmin;
+}
+
+.WarningIcon{
+  height: 3vmin;
+  width: 3vmin;
+  position: absolute;
+  right: 1.5vmin;
+  top: 4vmin;
+}
+
+.CardDisplay>select{
+  margin-top: 2px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+option{
+  text-align: center;
+}
+
+.AbilityClassOverlayImage>.Card-image{
+  height: 8vmin;
+  width: 8vmin;
+  position: absolute;
+  right: 0vmin;
+  top: 3vmin;
+}

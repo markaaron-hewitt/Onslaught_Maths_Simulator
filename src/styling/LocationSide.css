@@ -1,0 +1,10 @@
+
+.locationSide{
+    display: flex;
+    flex-direction: column;
+}
+
+.cardRow{
+    display: flex;
+    flex-direction: row;
+}
