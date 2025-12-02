@@ -14,7 +14,7 @@ function LocationDisplay(props){
     <div className="LocationDisplay">
         <LocationImage locationName={props.locationName} />
 
-        <MyDropdown optionList={locationList} setOption={setLocation} selectedOption={props.locationNameame} />
+        <MyDropdown optionList={locationList} setOption={setLocation} selectedOption={props.locationName} />
     </div>
     )
 }
