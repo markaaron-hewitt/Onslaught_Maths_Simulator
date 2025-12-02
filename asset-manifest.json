@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/Onslaught_Maths_Simulator/static/css/main.0ffce40b.css",
-    "main.js": "/Onslaught_Maths_Simulator/static/js/main.9fc7176b.js",
+    "main.js": "/Onslaught_Maths_Simulator/static/js/main.bf92de2d.js",
     "static/js/453.31ec2dc1.chunk.js": "/Onslaught_Maths_Simulator/static/js/453.31ec2dc1.chunk.js",
     "static/media/PlusIcon.png": "/Onslaught_Maths_Simulator/static/media/PlusIcon.9385fd7f6a0634903eaf.png",
     "static/media/WarningIcon.png": "/Onslaught_Maths_Simulator/static/media/WarningIcon.d6e14c0f241bb720bb43.png",
@@ -459,11 +459,11 @@
     "static/media/Default.jpg": "/Onslaught_Maths_Simulator/static/media/Default.7e48f9e84f5b9ec5c100.jpg",
     "index.html": "/Onslaught_Maths_Simulator/index.html",
     "main.0ffce40b.css.map": "/Onslaught_Maths_Simulator/static/css/main.0ffce40b.css.map",
-    "main.9fc7176b.js.map": "/Onslaught_Maths_Simulator/static/js/main.9fc7176b.js.map",
+    "main.bf92de2d.js.map": "/Onslaught_Maths_Simulator/static/js/main.bf92de2d.js.map",
     "453.31ec2dc1.chunk.js.map": "/Onslaught_Maths_Simulator/static/js/453.31ec2dc1.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0ffce40b.css",
-    "static/js/main.9fc7176b.js"
+    "static/js/main.bf92de2d.js"
   ]
 }
