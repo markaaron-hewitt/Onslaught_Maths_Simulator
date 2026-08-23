@@ -1,7 +1,7 @@
 import '../styling/LocationSide.css'
 import CardDisplay from "./CardDisplay";
 
-// props needs to contian the game side to display cards in the correct position
+// props needs to contain the game side to display cards in the correct position
 function LocationSide(props) {
 
     return (

@@ -72,7 +72,7 @@ class Card {
             this.name = name
         }
         // If custom ability class selected, use it
-        if (Object.values(AbilityClass).includes(abilityClass) && abilityClass != "") {
+        if (Object.values(AbilityClass).includes(abilityClass) && abilityClass !== "") {
             this.abilityClass = abilityClass
         }
         // If no custom ability class selected, check if the card name inherently has an ability class
@@ -524,8 +524,6 @@ function Simulator(){
         [
             [
                 [{name: "Black Cat", abilityClass: ""},{name: "Adam Warlock", abilityClass: ""},{name: "Sera", abilityClass: ""},{name: "Onslaught", abilityClass: "Onslaught"}],
-                //[{name: "Mr Fantastic", abilityClass: ""},{name: "Moonstone", abilityClass: "Moonstone"},{name: "Onslaught", abilityClass: "Onslaught"},{name: "Onslaught", abilityClass: "Onslaught"}],
-                //TODO: remove
                 [{name: "Mr Fantastic", abilityClass: ""},{name: "Moonstone", abilityClass: "Moonstone"},{name: "Mystique", abilityClass: "Onslaught"},{name: "Chameleon", abilityClass: "Onslaught"}],
                 [{name: "Luna Snow", abilityClass: ""},{name: "Ice Cube", abilityClass: ""},{name: "Magik", abilityClass: ""},{name: "", abilityClass: ""}]
             ],

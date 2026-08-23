@@ -4,7 +4,7 @@ const IMG_LOCATION = (locationName) => {
 
 function LocationImage(props){
     let locationName = ""
-    if (props.locationName == ""){
+    if (props.locationName === ""){
         locationName = "Ruins"
     }
     else{
@@ -18,7 +18,7 @@ function LocationImage(props){
         <img 
             src = { IMG_LOCATION(locationName) } 
             className = "Location-image"
-            alt = "Location image"
+            alt = "Location"
         />
     )
 }
