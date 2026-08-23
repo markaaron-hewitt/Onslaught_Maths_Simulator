@@ -2,6 +2,7 @@ import './styling/App.css';
 import PageHeader from './components/PageHeader.js';
 import PageFooter from './components/PageFooter.js';
 import Home from './pages/Home.js'
+import { Button } from '@mui/material';
 
 function App() {
   return (

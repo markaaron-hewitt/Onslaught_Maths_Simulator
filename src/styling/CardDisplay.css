@@ -10,14 +10,22 @@
   padding-bottom: 4px;
 }
 
-.Card-image {
+.CardDisplay .Card-image {
   height: 12vmin;
   width: 12vmin;
   object-fit: contain;
   pointer-events: none;
 }
 
-.PlusIcon{
+.CardDisplay .WarningIcon{
+  height: 2.5vmin;
+  width: 2.5vmin;
+  position: absolute;
+  right: 1.5vmin;
+  top: 3.5vmin;
+}
+
+.CardDisplay .PlusIcon{
   height: 2vmin;
   width: 2vmin;
   position: absolute;
@@ -25,12 +33,18 @@
   top: 7vmin;
 }
 
-.WarningIcon{
-  height: 3vmin;
-  width: 3vmin;
+.CardDisplay .popupDropdown{
   position: absolute;
-  right: 1.5vmin;
-  top: 4vmin;
+  right: 2vmin;
+  top: 5vmin;
+}
+
+.CardDisplay .removeAbilityIcon{
+  height: 1.5vmin;
+  width: 1.5vmin;
+  position: absolute;
+  right: 1vmin;
+  top: 4.5vmin;
 }
 
 .CardDisplay>select{
@@ -39,11 +53,11 @@
   font-size: 12px;
 }
 
-option{
+.CardDisplay option{
   text-align: center;
 }
 
-.AbilityClassOverlayImage>.Card-image{
+.CardDisplay .AbilityClassOverlayImage>.Card-image{
   height: 8vmin;
   width: 8vmin;
   position: absolute;

@@ -1,20 +1,8 @@
 import GameBoard from "./GameBoard"
-import CardDetailsLogger from "./CardDetailsLogger"
+import CardDetailsDisplay from "./CardDetailsDisplay"
 import '../styling/Simulator.css'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-function extractVisualBoardState(boardState){
-    let visualBoardState = [[[{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],[{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],[{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]],[[{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],[{name: "", abilityClass: ""},{Name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],[{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]]]
-    for (let i=0; i<boardState.length; i++){
-        for (let j=0; j<boardState[i].length; j++){
-            for (let k=0; k<boardState[i][j].length; k++){
-                visualBoardState[i][j][k].name = boardState[i][j][k].name
-                visualBoardState[i][j][k].abilityClass = boardState[i][j][k].abilityClass
-            }
-        }
-    }
-    return visualBoardState
-}
 
 // Ability Class enum
 const AbilityClass = {
@@ -24,11 +12,37 @@ const AbilityClass = {
     SUPERSKRULL: "Super Skrull",
     MOONSTONE: "Moonstone",
     ODIN: "Odin",
-    JOCASTA: "Jocasta"
+    JOCASTA: "Jocasta",
+    REMOVED: "Removed"
 };
+
+// Temporary map of card name -> 3 cost or less (to make Moonstone functional)
+const ThreeOrLessMap = {
+    "": false,
+    "Onslaught": false,
+    "Wong": false,
+    "Super Skrull": false,
+    "Moonstone": false,
+    "Mystique": true,
+    "Mr Fantastic": true,
+    "Blue Marvel": false,
+    "Forge": true,
+    "Rock": true,
+
+    "Chameleon": true,
+    "Prodigy": true,
+    "Iron Man": false,
+    "The Living Tribunal": false,
+    "Luna Snow": true,
+    "Ice Cube": true,
+    "Sera": false,
+    "Magik": true,
+    "Adam Warlock": true
+}
 
 // Card class
 class Card {
+    legacyCalculations = false
     revealed = true
     name = ""
     isOngoing = false
@@ -43,27 +57,60 @@ class Card {
     wongsContained = 0
     // Onslaught multiplier received = What is the multiplier acting on this card's Ongoing effects from Onslaught abilities?
     // Onslaughts are not affected by other Onslaughts played after them, so this is different to the total multiplier
-    onslaughtMultiplierReceivedForOnslaughts = 0
-    onslaughtMultiplierReceived = 0
+    onslaughtMultiplierReceivedForOnslaughts = 1
+    onslaughtMultiplierReceived = 1
     // Wong multiplier received = how many times do On Reveal effects of this card proc?
-    wongMultiplierReceived = 0
+    wongMultiplierReceived = 1
     // Output = What is the total multiplier of this type that this card outputs? Generally Output = Contained * Multiplier Received
     onslaughtMultiplierOutput = 0
     wongMultiplierOutput = 0
     odinProcs= {Forge:"23", Shuri:"24"}  //TODO: make this {}
 
     constructor(name, abilityClass) {
+        // Set name
         if (name) {
             this.name = name
         }
+        // If custom ability class selected, use it
+        if (Object.values(AbilityClass).includes(abilityClass) && abilityClass != "") {
+            this.abilityClass = abilityClass
+        }
+        // If no custom ability class selected, check if the card name inherently has an ability class
         if (Object.values(AbilityClass).includes(name)) {
             this.abilityClass = name
+        }
+        // If no other ability class is found, set it as default
+        else {
+            this.abilityClass = AbilityClass.DEFAULT
+        }
+    }
+
+    getName(){
+        return this.name
+    }
+
+    setName(name){
+        this.name = name
+    }
+
+    getAbilityClass(){
+        return this.abilityClass
+    }
+
+    setAbilityClass(abilityClass){
+        this.abilityClass = abilityClass
+    }
+
+    setIsThreeOrLess(){
+        if (this.name in ThreeOrLessMap){
+            this.isThreeOrLess = ThreeOrLessMap[this.name]
         }
     }
 
     logDetails(){
         console.log("=======================================================")
         console.log(`Name: ${this.name}`)
+        console.log(`Use legacy calculations: ${this.legacyCalculations}`)  
         console.log(`Ability Class: ${this.abilityClass}`)
         console.log(`Position: ${this.boardPosition}`)
         console.log(`Onslaughts contained: ${this.onslaughtsContained}`)
@@ -73,7 +120,7 @@ class Card {
         console.log(`Onslaught multiplier received: ${this.onslaughtMultiplierReceived}`)
         console.log(`Wong multiplier output: ${this.wongMultiplierOutput}`)
         console.log(`Wong multiplier received: ${this.wongMultiplierReceived}`)
-        if (this.abilityClass == AbilityClass.ODIN){
+        if (this.abilityClass === AbilityClass.ODIN){
             for (let i=0; i<Object.keys(this.odinProcs).length; i++){
                 let currentKey = Object.keys(this.odinProcs)[i]
                 console.log(`After playing this Odin, ${currentKey} triggers a total of ${this.odinProcs[currentKey]} times`)
@@ -82,7 +129,7 @@ class Card {
         console.log("=======================================================")
     }
 
-    updateBoardPosition(boardPosition) {
+    setBoardPosition(boardPosition) {
         this.boardPosition = boardPosition
     }
 
@@ -97,8 +144,8 @@ class Card {
                 this.wongsContained = 0
                 break;
             case AbilityClass.SUPERSKRULL:
-                var sideToCheck
-                if (this.boardPosition[0] == 0) {
+                let sideToCheck
+                if (this.boardPosition[0] === 0) {
                     sideToCheck = 1
                 }
                 else {
@@ -108,37 +155,33 @@ class Card {
                 this.wongsContained = 0
                 for (let j=0; j < boardState[sideToCheck].length; j++) {
                     for (let k=0; k < boardState[sideToCheck][j].length; k++) {
-                        var cardToCheck = boardState[sideToCheck][j][k]
-                        if (cardToCheck.abilityClass == AbilityClass.ONSLAUGHT) {
+                        let cardToCheck = boardState[sideToCheck][j][k]
+                        if (cardToCheck.abilityClass === AbilityClass.ONSLAUGHT) {
                             this.onslaughtsContained += 1
                         }
-                        else if (cardToCheck.abilityClass == AbilityClass.WONG) {
+                        else if (cardToCheck.abilityClass === AbilityClass.WONG) {
                             this.wongsContained += 1
                         }
                     }
                 }
-                //console.log(`Super Skrull at position: ${this.boardPosition}`) //TODO: remove
-                //console.log(`Onslaughts contained: ${this.onslaughtsContained}`) //TODO: remove
-                //console.log(`Wongs contained: ${this.wongsContained}`) //TODO: remove
                 break;
             case AbilityClass.MOONSTONE:
-                var locationToCheck = this.boardPosition.slice(0,2)
+                let locationToCheck = this.boardPosition.slice(0,2)
+                this.onslaughtsContained = 0
+                this.wongsContained = 0
                 for (let k=0; k < boardState[locationToCheck[0]][locationToCheck[1]].length; k++) {
-                    var cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
+                    let cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
                     // Ensure Moonstone's condition is met
                     // Moonstones ignore any (other) Moonstones so this will automatically ignore itself
                     if (cardToCheck.isThreeOrLess) {
-                        if (cardToCheck.abilityClass == AbilityClass.ONSLAUGHT) {
+                        if (cardToCheck.abilityClass === AbilityClass.ONSLAUGHT) {
                             this.onslaughtsContained += 1
                         }
-                        else if (cardToCheck.abilityClass == AbilityClass.WONG) {
+                        else if (cardToCheck.abilityClass === AbilityClass.WONG) {
                             this.wongsContained += 1
                         }
                     }
                 }
-                //console.log(`Moonstone at position: ${this.boardPosition}`) //TODO: remove
-                //console.log(`Onslaughts contained: ${this.onslaughtsContained}`) //TODO: remove
-                //console.log(`Wongs contained: ${this.wongsContained}`) //TODO: remove
                 break;
             default:
                 this.onslaughtsContained = 0
@@ -148,23 +191,28 @@ class Card {
     }
 
     calculateOnslaughtMultiplierReceivedForOnslaughts(boardState, locations){
-        var locationToCheck = this.boardPosition.slice(0,2)
-        var inOnslaughtsCitadel = false
-        if (locations[this.boardPosition[1]] == "Onslaught's Citadel"){
+        let locationToCheck = this.boardPosition.slice(0,2)
+        let inOnslaughtsCitadel = false
+        if (locations[this.boardPosition[1]] === "Onslaught's Citadel"){
             inOnslaughtsCitadel = true
         }
         // Loop through all cards in this location up to this card and add together their Multipliers
-        var sumOfMultipliers = 0
+        let sumOfMultipliers = 0
+        if (this.legacyCalculations === false)
+            sumOfMultipliers = 1
         // Onslaught's Citadel is the equivalent of having an extra Onslaught
         if (inOnslaughtsCitadel){
-            sumOfMultipliers += 2
+            if (this.legacyCalculations)
+                sumOfMultipliers += 2
+            else
+                sumOfMultipliers += 1
         }
         for (let k=0; k < this.boardPosition[2]; k++) {
-            var cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
+            let cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
             sumOfMultipliers += cardToCheck.onslaughtMultiplierOutput
         }
         // If no Onslaught abilities are received, the base multiplier is 1
-        if (sumOfMultipliers == 0){
+        if (sumOfMultipliers === 0){
             this.onslaughtMultiplierReceivedForOnslaughts = 1
         }
         // If there are Onslaught abilities received, the multiplier is the sum of Onslaught multipliers received
@@ -176,39 +224,48 @@ class Card {
 
     calculateOnslaughtMultiplierOutput() {
         // If no Onslaughts contained, no Onslaught effects are output
-        if (this.onslaughtsContained == 0){
+        if (this.onslaughtsContained === 0){
             this.onslaughtMultiplierOutput = 0
         }
-        // Onslaught multiplier output is 2 x [Number of Onslaughts contained] x [Onslaught multiplier received]
         else{
-            this.onslaughtMultiplierOutput = 2 * this.onslaughtsContained * this.onslaughtMultiplierReceivedForOnslaughts
+            if (this.legacyCalculations)
+                // LEGACY Onslaught multiplier output is 2 x [Number of Onslaughts contained] x [Onslaught multiplier received]
+                this.onslaughtMultiplierOutput = 2 * this.onslaughtsContained * this.onslaughtMultiplierReceivedForOnslaughts
+            else
+                // CURRENT Onslaught multiplier output is [Number of Onslaughts contained] x [Onslaught multiplier received]
+                this.onslaughtMultiplierOutput = this.onslaughtsContained * this.onslaughtMultiplierReceivedForOnslaughts
         }
         return this.onslaughtMultiplierOutput
     }
 
     // Once all Onslaught multipliers have been calculated, we can now calculate the multipliers received for non-Onslaught abilities
     calculateOnslaughtMultiplierReceived(boardState, locations){
-        var locationToCheck = this.boardPosition.slice(0,2)
-        var inOnslaughtsCitadel = false
-        if (locations[this.boardPosition[1]] == "Onslaught's Citadel"){
+        let locationToCheck = this.boardPosition.slice(0,2)
+        let inOnslaughtsCitadel = false
+        if (locations[this.boardPosition[1]] === "Onslaught's Citadel"){
             inOnslaughtsCitadel = true
         }
         // Loop through all cards in this location up to this card and add together their Multipliers
-        var sumOfMultipliers = 0
+        let sumOfMultipliers = 0
+        if (this.legacyCalculations === false)
+            sumOfMultipliers = 1
         // Onslaught's Citadel is the equivalent of having an extra Onslaught
         if (inOnslaughtsCitadel){
-            sumOfMultipliers += 2
+            if (this.legacyCalculations)
+                sumOfMultipliers += 2
+            else
+                sumOfMultipliers += 1
         }
         // This time we look at all Onslaughts in a lane (other than this card), it doesn't matter the order
         for (let k=0; k < boardState[locationToCheck[0]][locationToCheck[1]].length; k++) {
-            var cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
+            let cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
             // Don't include this card's own multiplier
-            if (k != this.boardPosition[2]){
+            if (k !== this.boardPosition[2]){
                 sumOfMultipliers += cardToCheck.onslaughtMultiplierOutput
             }
         }
         // If no Onslaught abilities are received, the base multiplier is 1
-        if (sumOfMultipliers == 0){
+        if (sumOfMultipliers === 0){
             this.onslaughtMultiplierReceived = 1
         }
         else{
@@ -218,36 +275,45 @@ class Card {
     }
 
     calculateWongMultiplierOutput() {
-        if (this.wongsContained == 0){
+        if (this.wongsContained === 0){
             this.wongMultiplierOutput = 0
             return this.wongMultiplierOutput
         }
-        // Wong multiplier output is 2 x [Number of Wongs contained] x [Onslaught multiplier received]
-        this.wongMultiplierOutput = 2 * this.wongsContained * this.onslaughtMultiplierReceived
+        if (this.legacyCalculations)
+            // LEGACY Wong multiplier output is 2 x [Number of Wongs contained] x [Onslaught multiplier received]
+            this.wongMultiplierOutput = 2 * this.wongsContained * this.onslaughtMultiplierReceived
+        else
+            // CURRENT Wong multiplier output is [Number of Wongs contained] x [Onslaught multiplier received]
+            this.wongMultiplierOutput = this.wongsContained * this.onslaughtMultiplierReceived
         return this.wongMultiplierOutput
     }
 
     calculateWongMultiplierReceived(boardState, locations){
-        var locationToCheck = this.boardPosition.slice(0,2)
-        var inKamarTaj = locations[this.boardPosition[1]] == "Kamar-Taj"
-        if (locations[this.boardPosition[1]] == "Kamar-Taj"){
+        let locationToCheck = this.boardPosition.slice(0,2)
+        let inKamarTaj = locations[this.boardPosition[1]] === "Kamar-Taj"
+        if (locations[this.boardPosition[1]] === "Kamar-Taj"){
             inKamarTaj = true
         }
         // Loop through all cards in this location up to this card and add together their Multipliers
-        var sumOfMultipliers = 0
+        let sumOfMultipliers = 0
+        if (this.legacyCalculations === false)
+            sumOfMultipliers = 1
         // Kamar-Taj is the equivalent of having an extra Wong
         if (inKamarTaj){
-            sumOfMultipliers += 2
+            if (this.legacyCalculations)
+                sumOfMultipliers += 2
+            else
+                sumOfMultipliers += 1
         }
         for (let k=0; k < boardState[locationToCheck[0]][locationToCheck[1]].length; k++) {
-            var cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
+            let cardToCheck = boardState[locationToCheck[0]][locationToCheck[1]][k]
             // Don't include this card's own multiplier
-            if (k != this.boardPosition[2]){
+            if (k !== this.boardPosition[2]){
                 sumOfMultipliers += cardToCheck.wongMultiplierOutput
             }
         }
         // If no Wong abilities are received, the base multiplier is 1
-        if (sumOfMultipliers == 0){
+        if (sumOfMultipliers === 0){
             this.wongMultiplierReceived = 1
         }
         else{
@@ -306,12 +372,6 @@ class Card {
 //const boardStateTemp = [[[new Card("Wong", "Wong"), new Card("Wong", "Wong"), new Card("Onslaught", "Onslaught"), new Card("Sera", "Default")],[new Card("Maximus",AbilityClass.DEFAULT), new Card("Magik",AbilityClass.DEFAULT), new Card("Crystal",AbilityClass.DEFAULT), new Card("Adam Warlock",AbilityClass.DEFAULT)],[new Card, new Card, new Card, new Card]],
 //[[new Card, new Card, new Card, new Card("Super Skrull", AbilityClass.SUPERSKRULL)],[new Card("Wong", AbilityClass.WONG), new Card, new Card, new Card],[new Card, new Card, new Card, new Card]]]
 
-function testFunction() {
-    console.log("Let the testing commence")
-    //simulateBoard()
-}
-//TODO: remove above testFunction
-
 
 // Visual design:
 // 
@@ -325,16 +385,13 @@ function testFunction() {
 // 
 // Choice of card backs for unrevealed cards
 // 
-// Ability to select locations
-// Only locations that matter are: Onslaughts Citadel/Kamar-Taj? Could include Deep Space etc. for flavour but probs not useful.
-// Unselected locations show as unrevealed? Ruins?
+// Could include extra locations like Deep Space etc. for flavour but probs not useful.
 // 
 // Board is only part of screen, some should be results/information
 // Ability to select cards to show info for?
 // Default or ability to bring up data table for O/W on other side
 // Warning colours and tooltip if I expect it to crash - Red/Amber/Green (Roughly it should start to crash after around 600 procs on an On Reveal card)
 // 
-// Reset Board button
 // 
 // Hover over cards for tooltip showing cards contained, number of procs etc. depending on that card's abilityClass
 // 
@@ -347,25 +404,152 @@ function testFunction() {
 // 
 
 // Functionality to add:
-// Locations
 // Activates (Jocasta) 
 // 
 
 function Simulator(){
 
+    const [visualBoardState, setVisualBoardState] = useState(
+        [
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+        ]
+    )
+
     // Array of two arrays (for each side), each containing 3 arrays (for each location), each containing 4 cards
-    const [boardState, setBoardState] = useState([[[new Card("Odin"), new Card("Wong"), new Card("Onslaught"), new Card("Sera")],[new Card("Maximus"), new Card("Magik"), new Card("Crystal"), new Card("Adam Warlock")],[new Card, new Card, new Card, new Card]],
-[[new Card, new Card, new Card, new Card("Super Skrull")],[new Card("Wong"), new Card("Sera"), new Card, new Card],[new Card, new Card, new Card, new Card]]]
-)
+    const [boardState, setBoardState] = useState(
+        [
+            [
+                [new Card("Maximus"), new Card("Luna Snow"), new Card("Nakia"), new Card("")],
+                [new Card("Mr Fantastic"), new Card("Moonstone"), new Card("Onslaught"), new Card("Onslaught")],
+                [new Card("King Eitri"), new Card("Magik"), new Card(""), new Card("")]
+            ],
+            [
+                [new Card("Maximus"), new Card("Wong"), new Card("Wong"), new Card("Leader")],
+                [new Card("Rock"), new Card("Rock"), new Card("Rock"), new Card("Rock")],
+                [new Card("Korg"), new Card("Sera"), new Card("Onslaught"), new Card("Onslaught")]
+            ]
+        ]
+    )
 
     const [locations, setLocations] = useState(["Ruins","Ruins","Ruins"])
 
-    let visualBoardState = extractVisualBoardState(boardState)
+    const [useLegacyCalculations, setUseLegacyCalculations] = useState(false)
+
+    const [displayedCardBoardPosition, setDisplayedCardBoardPosition] = useState([0,0,0])
+
+    useEffect(
+        () => {
+            simulateBoard()
+        }, [displayedCardBoardPosition, visualBoardState, locations, useLegacyCalculations]
+    );
+
+//displayedCardBoardPosition, visualBoardState, locations, useLegacyCalculations
+
+    function toggleUseLegacyCalculations(){
+        setUseLegacyCalculations(!useLegacyCalculations)
+    }
+
+    function setBoardStateFromVisualBoardState(){
+        for (let i=0; i < boardState.length; i++) {
+            for (let j=0; j < boardState[i].length; j++) {
+                for (let k=0; k < boardState[i][j].length; k++) {
+                    boardState[i][j][k].setName(visualBoardState[i][j][k].name)
+
+                    // If custom ability class selected, use it
+                    if (Object.values(AbilityClass).includes(visualBoardState[i][j][k].abilityClass)) {
+                        boardState[i][j][k].abilityClass = visualBoardState[i][j][k].abilityClass
+                    }
+                    // If no custom ability class selected, check if the card name inherently has an ability class
+                    else if (Object.values(AbilityClass).includes(visualBoardState[i][j][k].name)) {
+                        boardState[i][j][k].abilityClass = visualBoardState[i][j][k].name
+                    }
+                    // If no other ability class is found, set it as default
+                    else {
+                        boardState[i][j][k].abilityClass = AbilityClass.DEFAULT
+                    }
+                }
+            }
+        }
+    }
+
+    function resetBoard(){
+        let emptyBoardState =         
+        [
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+        ]
+        let emptyLocations = ["Ruins","Ruins","Ruins"]
+        setVisualBoardState(emptyBoardState)
+        setLocations(emptyLocations)
+    }
+
+    function setExampleBoardTheLivingTribunal(){
+        let exampleBoardState = 
+        [
+            [
+                [{name: "Magik", abilityClass: ""},{name: "Jubilee", abilityClass: ""},{name: "Sera", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "Luna Snow", abilityClass: ""},{name: "Ice Cube", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "Iron Man", abilityClass: ""},{name: "Onslaught", abilityClass: "Onslaught"},{name: "Onslaught", abilityClass: "Onslaught"},{name: "The Living Tribunal", abilityClass: ""}]
+            ],
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+        ]
+        let exampleLocations = ["Limbo","Nova Roma","Stark Tower"]
+        setVisualBoardState(exampleBoardState)
+        setLocations(exampleLocations)
+    }
+
+    function setExampleBoardMrFantasticCombo(){
+        let exampleBoardState = 
+        [
+            [
+                [{name: "Black Cat", abilityClass: ""},{name: "Adam Warlock", abilityClass: ""},{name: "Sera", abilityClass: ""},{name: "Onslaught", abilityClass: "Onslaught"}],
+                //[{name: "Mr Fantastic", abilityClass: ""},{name: "Moonstone", abilityClass: "Moonstone"},{name: "Onslaught", abilityClass: "Onslaught"},{name: "Onslaught", abilityClass: "Onslaught"}],
+                //TODO: remove
+                [{name: "Mr Fantastic", abilityClass: ""},{name: "Moonstone", abilityClass: "Moonstone"},{name: "Mystique", abilityClass: "Onslaught"},{name: "Chameleon", abilityClass: "Onslaught"}],
+                [{name: "Luna Snow", abilityClass: ""},{name: "Ice Cube", abilityClass: ""},{name: "Magik", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+            [
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}],
+                [{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""},{name: "", abilityClass: ""}]
+            ],
+        ]
+        let exampleLocations = ["Fogwell's Gym","Baxter Building","Limbo"]
+        setVisualBoardState(exampleBoardState)
+        setLocations(exampleLocations)
+    }
 
     function setCardName(cardName, position){
-        let newBoardState = boardState.slice()
-        newBoardState[position[0]][position[1]][position[2]] = new Card(cardName)
-        setBoardState(newBoardState)
+        let newVisualBoardState = visualBoardState.slice()
+        newVisualBoardState[position[0]][position[1]][position[2]].name = cardName
+        setVisualBoardState(newVisualBoardState)
+    }
+
+    function setCardAbilityClass(abilityClass, position){
+        let newVisualBoardState = visualBoardState.slice()
+        newVisualBoardState[position[0]][position[1]][position[2]].abilityClass = abilityClass
+        setVisualBoardState(newVisualBoardState)
     }
 
     function setLocationName(locationName, position){
@@ -375,16 +559,10 @@ function Simulator(){
     }
 
     function loggerFunction(side,location,position){
-        //console.log(side)
-        //console.log(location)
-        //console.log(position)
         side = parseInt(side)
         location = parseInt(location)
         position = parseInt(position)
-        //console.log(side)
-        //console.log(location)
-        //console.log(position)
-        simulateBoard()
+
         if (!isNaN(side) && !isNaN(location) && !isNaN(position)){
             boardState[side][location][position].logDetails()
         }
@@ -392,7 +570,6 @@ function Simulator(){
             console.log("Input not valid")
         }
     }
-
 
     // functionToExecute should take one parameter, a Card object
     function executeFunctionOnAllCards(functionToExecute){
@@ -405,14 +582,28 @@ function Simulator(){
         }
     }
 
-    function updateBoardPositions(){
+    function setBoardPositions(){
         for (let i=0; i < boardState.length; i++) {
             for (let j=0; j < boardState[i].length; j++) {
                 for (let k=0; k < boardState[i][j].length; k++) {
-                    boardState[i][j][k].updateBoardPosition([i,j,k])
+                    boardState[i][j][k].setBoardPosition([i,j,k])
                 }
             }
         }
+    }
+
+    function setLegacyCalculationsBooleans(){
+        function functionToExecute (card) {
+            card.legacyCalculations = useLegacyCalculations
+        }
+        executeFunctionOnAllCards(functionToExecute)
+    }
+
+    function setIsThreeOrLessProperties(){
+        function functionToExecute (card) {
+            card.setIsThreeOrLess()
+        }
+        executeFunctionOnAllCards(functionToExecute)
     }
 
     function calculateAbilitiesContained(boardState){
@@ -432,63 +623,73 @@ function Simulator(){
 
     function calculateOnslaughtMultipliersRecieved(boardState, locations){
         function functionToExecute (card) {
-        card.calculateOnslaughtMultiplierReceived(boardState, locations)
+            card.calculateOnslaughtMultiplierReceived(boardState, locations)
         }
         executeFunctionOnAllCards(functionToExecute)
     }
 
     function calculateWongMultiplierOutputs(){
         function functionToExecute (card) {
-        card.calculateWongMultiplierOutput()
+            card.calculateWongMultiplierOutput()
         }
         executeFunctionOnAllCards(functionToExecute)
     }
 
     function calculateWongMultipliersReceived(boardState, locations){
         function functionToExecute (card) {
-        card.calculateWongMultiplierReceived(boardState, locations)
+            card.calculateWongMultiplierReceived(boardState, locations)
         }
         executeFunctionOnAllCards(functionToExecute)
     }
 
     function calculateFullOdinProcs(boardState){
         function functionToExecute (card) {
-        card.calculateFullOdinProcs(boardState)
+            card.calculateFullOdinProcs(boardState)
         }
         executeFunctionOnAllCards(functionToExecute)
     }
 
     function simulateBoard(){
-        updateBoardPositions()
+        setBoardStateFromVisualBoardState()
+        setBoardPositions()
+        setLegacyCalculationsBooleans()
+        setIsThreeOrLessProperties()
         calculateAbilitiesContained(boardState)
         calculateOnslaughtMultiplierOutputs(boardState, locations)
         calculateOnslaughtMultipliersRecieved(boardState, locations)
         calculateWongMultiplierOutputs()
         calculateWongMultipliersReceived(boardState, locations)
         calculateFullOdinProcs(boardState)
+        setBoardState([...boardState])
+        loggerFunction(...displayedCardBoardPosition)
     }
-
-    //TODO: remove:
-    const locationOptions = [
-        { value: "", label: ""},
-        { value: "Onslaught's Citadel", label: "Onslaught's Citadel"},
-        { value: "Kamar-Taj", label: "Kamar-Taj"},
-        { value: "Limbo", label: "Limbo"}
-    ]
 
     return (
     <div className="Simulator">
         <div className = "horizontalContent">
+            <div className = "leftMenu">
+                <p>Legacy calculations?</p>
+                <label className="switch">
+                    <input type="checkbox" value={useLegacyCalculations} onChange={() => toggleUseLegacyCalculations()} />
+                    <span className="slider round"></span>
+                </label>
+                <p className = "clarifier">(Pre 30 Apr 2026)</p>
+                <p>Example Boards</p>
+                <button onClick={setExampleBoardTheLivingTribunal}>The Living Tribunal</button>
+                <button onClick={setExampleBoardMrFantasticCombo}>Mr Fantastic Combo</button>
+                <button className = "resetButton" onClick={resetBoard}>Reset board</button>
+            </div>
             <GameBoard
                 visualBoardState = {visualBoardState}
                 locationNames = {locations}
                 setCard = {(cardName, position) => setCardName(cardName, position)}
+                setCardAbilityClass = {(newAbilityClass, position) => setCardAbilityClass(newAbilityClass, position)}
                 setLocation = {(locationName, position) => setLocationName(locationName, position)}
             />
             <div className = "verticalContent">
-                <button onClick={testFunction}> Test Button </button>
-                <CardDetailsLogger
-                    logCardDetailsAtPosition={loggerFunction}
+                <CardDetailsDisplay
+                    displayedCard = {boardState[displayedCardBoardPosition[0]][displayedCardBoardPosition[1]][displayedCardBoardPosition[2]]}
+                    setDisplayedCardBoardPosition={setDisplayedCardBoardPosition}
                 />
             </div>
         </div>

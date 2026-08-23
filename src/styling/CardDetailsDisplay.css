@@ -1,0 +1,49 @@
+.DetailsDisplay{
+    margin-top: 40px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    padding-left: 25px;
+    padding-right: 25px;
+    background-color: navy;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 460px;
+}
+
+.DetailsDisplay h5{
+    margin: 10px;
+    padding-bottom: 5px;
+}
+
+.DetailsDisplay input{
+    margin-top:0;
+    text-align:center;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.DetailsDisplay select{
+    font-size: 20px;
+    min-width: 40px;
+    padding-right: 2px;
+    text-align: center;
+}
+
+.DetailsDisplay .Inputs{
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+}
+
+.DetailsDisplay .SelectDiv{
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+}
+
+.DetailsDisplay p{
+    font-size: 20px;
+}

@@ -10,6 +10,7 @@ function GameBoard(props) {
                 side = {1}
                 cardsAtLocation = {props.visualBoardState[1][0]}
                 setCard = {(newCard, position) => props.setCard(newCard, [1, 0, position])}
+                setCardAbilityClass = {(newCard, position) => props.setCardAbilityClass(newCard, [1, 0, position])}
             />
             <LocationDisplay
                 locationName={props.locationNames[0]}
@@ -19,6 +20,7 @@ function GameBoard(props) {
                 side = {0}
                 cardsAtLocation = {props.visualBoardState[0][0]}
                 setCard = {(newCard, position) => props.setCard(newCard, [0, 0, position])}
+                setCardAbilityClass = {(newCard, position) => props.setCardAbilityClass(newCard, [0, 0, position])}
             />
             </div>
             <div className='locationColumn'>
@@ -26,6 +28,7 @@ function GameBoard(props) {
                 side = {1}
                 cardsAtLocation = {props.visualBoardState[1][1]}
                 setCard = {(newCard, position) => props.setCard(newCard, [1, 1, position])}
+                setCardAbilityClass = {(newAbilityClass, position) => props.setCardAbilityClass(newAbilityClass, [1, 1, position])}
             />
             <LocationDisplay
                 locationName={props.locationNames[1]}
@@ -35,6 +38,7 @@ function GameBoard(props) {
                 side = {0}
                 cardsAtLocation = {props.visualBoardState[0][1]}
                 setCard = {(newCard, position) => props.setCard(newCard, [0, 1, position])}
+                setCardAbilityClass = {(newAbilityClass, position) => props.setCardAbilityClass(newAbilityClass, [0, 1, position])}
             />
             </div>
             <div className='locationColumn'>
@@ -42,6 +46,7 @@ function GameBoard(props) {
                 side = {1}
                 cardsAtLocation = {props.visualBoardState[1][2]}
                 setCard = {(newCard, position) => props.setCard(newCard, [1, 2, position])}
+                setCardAbilityClass = {(newAbilityClass, position) => props.setCardAbilityClass(newAbilityClass, [1, 2, position])}
             />
             <LocationDisplay
                 locationName={props.locationNames[2]}
@@ -51,6 +56,7 @@ function GameBoard(props) {
                 side = {0}
                 cardsAtLocation = {props.visualBoardState[0][2]}
                 setCard = {(newCard, position) => props.setCard(newCard, [0, 2, position])}
+                setCardAbilityClass = {(newAbilityClass, position) => props.setCardAbilityClass(newAbilityClass, [0, 2, position])}
             />
             </div>
         </div>

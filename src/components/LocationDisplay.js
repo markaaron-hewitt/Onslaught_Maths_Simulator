@@ -4,6 +4,7 @@ import MyDropdown from './MyDropdown.js'
 
 const locationList = ["","Onslaught's Citadel","Kamar-Taj","Limbo"]
 
+
 function LocationDisplay(props){
 
     function setLocation(newLocation){

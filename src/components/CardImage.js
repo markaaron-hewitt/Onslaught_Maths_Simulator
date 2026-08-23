@@ -5,9 +5,9 @@ const IMG_CARD = (cardName) => {
 function CardImage(props){
     return (
         <img 
-            src = { props.cardName == "" ? IMG_CARD("Default") : IMG_CARD(props.cardName.replace(' ', '')) } 
+            src = { props.cardName === "" ? IMG_CARD("Default") : IMG_CARD(props.cardName.replace(' ', '').replace(' ', '')) } 
             className = "Card-image"
-            alt = "Card image"
+            alt = "Card"
         />
     )
 }
