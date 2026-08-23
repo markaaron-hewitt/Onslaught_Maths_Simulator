@@ -1,6 +1,6 @@
 {
   "short_name": "Onslaught Maths Simulator",
-  "name": "Create React App Sample",
+  "name": "Onslaught Maths Simulator",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#000080",
+  "background_color": "#282c34"
 }
